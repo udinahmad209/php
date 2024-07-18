@@ -1,0 +1,50 @@
+<?php
+// The URL to request the M3U8 file from the website
+$website_url = "https://www.rctiplus.com/tv/rcti";
+
+// Initialize cURL session to fetch the webpage content
+$ch = curl_init();
+
+// Set the URL
+curl_setopt($ch, CURLOPT_URL, $website_url);
+
+// Return the transfer as a string
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+// Execute the session and store the webpage content in $response
+$response = curl_exec($ch);
+
+// Check for cURL errors
+if (curl_errno($ch)) {
+    echo 'Error:' . curl_error($ch);
+    curl_close($ch);
+    exit();
+}
+
+// Close cURL session
+curl_close($ch);
+
+// Use DOMDocument to parse the HTML and find the M3U8 URL
+$dom = new DOMDocument();
+@$dom->loadHTML($response);
+$xpath = new DOMXPath($dom);
+
+// Assuming the M3U8 URL is in a script tag or some specific HTML element
+// Adjust the XPath query based on the actual structure of the webpage
+$m3u8_url = null;
+$script_tags = $xpath->query("//script");
+
+foreach ($script_tags as $tag) {
+    $script_content = $tag->nodeValue;
+    if (preg_match('/(http.*\.m3u8)/', $script_content, $matches)) {
+        $m3u8_url = $matches[1];
+        break;
+    }
+}
+
+if ($m3u8_url) {
+    echo "Found M3U8 URL: " . $m3u8_url;
+} else {
+    echo "M3U8 URL not found";
+}
+?>
